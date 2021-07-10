@@ -7,13 +7,7 @@ import { Dialog, DialogTitle, DialogContent, TextField, DialogActions, Button, F
 import Table from '../../components/Table'
 import { getDeviceModels } from '../../redux/actions/deviceModelActions'
 import { getDevices, createDevice, updateDevice, deleteDevice } from '../../redux/actions/deviceAction'
-
-const columns = [
-  { title: 'Customer', field: 'customer', render: rowData => <Link to={`/dss/${rowData.id}`}>{ rowData.customer }</Link> },
-  { title: 'Description', field: 'description'},
-  { title: 'MAC', field: 'mac'},
-  { title: 'Model', field: 'device_model'}
-]
+import { useDebounce } from '../../utils/hooks/use-debounce'
 
 const Device = (props) => {
   const { deviceModel, devices, getDeviceModels, getDevices, createDevice, updateDevice, deleteDevice } = props
@@ -26,20 +20,43 @@ const Device = (props) => {
     mac: '',
     device_model: ''
   })
+  const [ pageIndex, setPageIndex ] = useState(0)
+  const [ pageSize, setPageSize ] = useState(5)
+  const [ keyword, setKeyword ] = useState(undefined)
+  const [ totalCount, setTotalCount ] = useState(0)
+
+  const debounceSearchWord = useDebounce(keyword, 300)
+
+  const columns = [
+    { title: 'Customer', field: 'customer', render: rowData => <Link to={`/dss/${rowData._id}`}>{ rowData.customer }</Link> },
+    { title: 'Description', field: 'description'},
+    { title: 'MAC', field: 'mac'},
+    { title: 'Model', field: 'device_model', render: rowData => <span>{deviceModel.find(item => item.id === rowData.device_model).name}</span>}
+  ]
 
   useEffect(() => {
     getDeviceModels()
-    getDevices()
+    getQueriedDevices()
   }, [])
+
+  useEffect(() => {
+    getQueriedDevices()
+  }, [ pageIndex, pageSize, debounceSearchWord ])
+
+  const getQueriedDevices = () => {
+    getDevices(pageIndex, pageSize, debounceSearchWord).then((totalCount) => {
+      setTotalCount(totalCount)
+    })
+  }
 
   const handleSubmit = () => {
     if (open === 'add') {
       createDevice(device).then(r => {
-        getDevices()
+        getQueriedDevices()
       })
     } else {
-      updateDevice(row.id, device).then(r => {
-        getDevices()
+      updateDevice(row._id, device).then(r => {
+        getQueriedDevices()
       })
     }
 
@@ -58,8 +75,8 @@ const Device = (props) => {
     setOpen(open)
     setRow(rowData)
     if (rowData) {
-      const { id, tableData, ...rest } = rowData
-      setDevice(rest)
+      const { _id, tableData, ...rest } = rowData
+      getQueriedDevices()
     }
   }
 
@@ -77,10 +94,19 @@ const Device = (props) => {
   }
 
   const onDeleteDevice = () => {
-    deleteDevice(row.id).then(r => {
+    deleteDevice(row._id).then(r => {
       getDevices()
     })
     handleCloseDeleteDialog()
+  }
+
+  const handlePageChange = (page, pageSize) => {
+    setPageIndex(page)
+    setPageSize(pageSize)
+  }
+
+  const handleSearchKeywordChange = (keyword) => {
+    setKeyword(keyword === '' ? undefined : keyword)
   }
 
   return (
@@ -91,6 +117,10 @@ const Device = (props) => {
         data={devices}
         openDialog={handleOpenDialog}
         deleteDevice={openDeleteDialog}
+        onPageChange={handlePageChange}
+        page={pageIndex}
+        totalCount={totalCount}
+        onSearchChange={handleSearchKeywordChange}
       />
       <Dialog open={!!open} onClose={handleClose} aria-labelledby="form-dialog-title" maxWidth='xs'>
         <DialogTitle id="form-dialog-title">{open === 'add' ? 'Add New Device' : open === 'edit' ? 'Edit Device' : ' '}</DialogTitle>

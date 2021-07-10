@@ -12,6 +12,10 @@ interface TableProps {
   columns: any;
   openDialog: (open: string, rowData?: Device | Device[]) => void
   deleteDevice: (rowData: Device | Device[]) => void
+  onPageChange: (page: number, pageSize: number) => void
+  page?: number
+  totalCount?: number
+  onSearchChange?: (searchText: string) => void
 }
 
 const TableContainer = styled.div`
@@ -26,7 +30,7 @@ const TableContainer = styled.div`
 `;
 
 const Table = (props: TableProps) => {
-  const { title, data, columns, openDialog, deleteDevice } = props
+  const { title, data, columns, openDialog, deleteDevice, onPageChange, page, totalCount, onSearchChange } = props
 
   return (
       <TableContainer>
@@ -66,6 +70,10 @@ const Table = (props: TableProps) => {
               addTooltip: 'Add New Row'
             }
           }}
+          onChangePage={onPageChange}
+          page={page}
+          totalCount={totalCount}
+          onSearchChange={onSearchChange}
         />
       </TableContainer>
   )

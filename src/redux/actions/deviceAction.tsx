@@ -9,11 +9,12 @@ export function setDevices(value: Device[]) {
   }
 }
 
-export const getDevices = () => async (dispatch) => {
+export const getDevices = (pageIndex, pageSize, keyword) => async (dispatch) => {
   try {
-    const response = await Http.get('/devices')
+    const response = await Http.get('/devices', { pageIndex, pageSize, keyword })
     if (response.data) {
-      dispatch(setDevices(response.data))
+      dispatch(setDevices(response.data.devices))
+      return response.data.totalCount
     }
   } catch (error) {
     throw (error)

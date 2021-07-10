@@ -1,5 +1,4 @@
 export interface DeviceModel {
-  id: number,
   vendor: number
   name: string
   dss: boolean

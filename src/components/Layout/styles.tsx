@@ -36,7 +36,7 @@ const Container = styled.div`
   position: relative;
   background: white;
   overflow: hidden;
-  padding: 50px 20px;
+  padding: 50px 30px;
 `
 
 export { Root, AppContent, MainContent, Container }
