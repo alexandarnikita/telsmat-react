@@ -76,7 +76,7 @@ const Device = (props) => {
     setRow(rowData)
     if (rowData) {
       const { _id, tableData, ...rest } = rowData
-      getQueriedDevices()
+      setDevice(rest)
     }
   }
 
@@ -95,7 +95,7 @@ const Device = (props) => {
 
   const onDeleteDevice = () => {
     deleteDevice(row._id).then(r => {
-      getDevices()
+      getQueriedDevices()
     })
     handleCloseDeleteDialog()
   }
